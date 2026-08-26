@@ -61,3 +61,5 @@ Este proyecto usa **pnpm** (no npm ni yarn).
 - Componentes de React en `src/components/` cuando la app crezca.
 - Diseño limpio y minimalista con Tailwind; la app debe verse bien en modo claro y oscuro.
 - Antes de dar por terminado un cambio, verifica que `pnpm build` pase sin errores.
+- Los formularios validan en el cliente antes de enviar y muestran los mensajes de error en cada campo.
+- Ninguna pantalla queda sin estado vacío y sin estado de carga.
