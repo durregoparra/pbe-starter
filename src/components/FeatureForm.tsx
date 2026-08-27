@@ -9,6 +9,7 @@ import {
   type Feature,
   type ImpactValue,
 } from "@/lib/rice";
+import { supabase } from "@/lib/supabase/client";
 
 interface FormValues {
   title: string;
@@ -71,6 +72,8 @@ export default function FeatureForm({
 }) {
   const [values, setValues] = useState<FormValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const reachNumber = Number(values.reach);
   const effortNumber = Number(values.effort);
@@ -95,23 +98,47 @@ export default function FeatureForm({
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const validationErrors = validate(values);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const { data, error } = await supabase
+      .from("features")
+      .insert({
+        title: values.title.trim(),
+        description: values.description.trim(),
+        category: values.category.trim(),
+        reach: reachNumber,
+        impact: Number(values.impact),
+        confidence: Number(values.confidence),
+        effort: effortNumber,
+      })
+      .select()
+      .single();
+
+    setSubmitting(false);
+
+    if (error || !data) {
+      setSubmitError("No se pudo guardar la feature. Intenta de nuevo.");
+      return;
+    }
+
     onAdd({
-      id: crypto.randomUUID(),
-      title: values.title.trim(),
-      description: values.description.trim(),
-      category: values.category.trim(),
-      status: "idea",
-      reach: reachNumber,
-      impact: Number(values.impact) as ImpactValue,
-      confidence: Number(values.confidence) as ConfidenceValue,
-      effort: effortNumber,
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      status: data.status,
+      reach: data.reach,
+      impact: data.impact as ImpactValue,
+      confidence: data.confidence as ConfidenceValue,
+      effort: data.effort,
     });
 
     setValues(initialValues);
@@ -243,11 +270,16 @@ export default function FeatureForm({
         </span>
       </div>
 
+      {submitError ? (
+        <p className="text-sm text-red-600 dark:text-red-400">{submitError}</p>
+      ) : null}
+
       <button
         type="submit"
-        className="w-full rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        disabled={submitting}
+        className="w-full rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
       >
-        Guardar feature
+        {submitting ? "Guardando..." : "Guardar feature"}
       </button>
     </form>
   );
