@@ -1,32 +1,33 @@
-"use client";
-
-import { useState } from "react";
-import FeatureForm from "@/components/FeatureForm";
-import FeatureList from "@/components/FeatureList";
+import FeaturesPage from "@/components/FeaturesPage";
 import type { Feature } from "@/lib/rice";
+import { supabase } from "@/lib/supabase/client";
 
-export default function Home() {
-  const [features, setFeatures] = useState<Feature[]>([]);
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const { data, error } = await supabase
+    .from("features")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  const features: Feature[] = (data ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    status: row.status,
+    reach: row.reach,
+    impact: row.impact,
+    confidence: row.confidence,
+    effort: row.effort,
+  }));
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-10 bg-white px-4 py-12 dark:bg-zinc-950">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-          Priorizador de Features
-        </h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Captura ideas y calcula su puntaje RICE
-        </p>
-      </div>
-
-      <div className="grid w-full max-w-4xl grid-cols-1 items-start gap-8 md:grid-cols-[380px_minmax(0,1fr)]">
-        <div className="md:sticky md:top-12">
-          <FeatureForm
-            onAdd={(feature) => setFeatures((prev) => [...prev, feature])}
-          />
-        </div>
-        <FeatureList features={features} />
-      </div>
-    </main>
+    <FeaturesPage
+      initialFeatures={features}
+      loadError={
+        error ? "No se pudieron cargar las features. Intenta recargar la página." : null
+      }
+    />
   );
 }
