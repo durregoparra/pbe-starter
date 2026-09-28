@@ -139,6 +139,7 @@ export default function FeatureForm({
       impact: data.impact as ImpactValue,
       confidence: data.confidence as ConfidenceValue,
       effort: data.effort,
+      createdAt: data.created_at,
     });
 
     setValues(initialValues);

@@ -18,6 +18,7 @@ export interface Feature {
   impact: ImpactValue;
   confidence: ConfidenceValue;
   effort: number;
+  createdAt: string;
 }
 
 export const IMPACT_OPTIONS: { value: ImpactValue; label: string }[] = [

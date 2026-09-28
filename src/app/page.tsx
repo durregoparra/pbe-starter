@@ -20,6 +20,7 @@ export default async function Home() {
     impact: row.impact,
     confidence: row.confidence,
     effort: row.effort,
+    createdAt: row.created_at,
   }));
 
   return (
